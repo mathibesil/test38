@@ -49,9 +49,10 @@ io.on('connection', function(socket){
     socket.on('updatePosition', function(data){
         player.position.x = data.position.x;
         player.position.y = data.position.y;
+        player.position.timeToLerp = data.position.timeToLerp;
 
         socket.broadcast.emit('updatePosition', player); 
-        console.log('Move: ' + player.position.x);
+        console.log('Move: ' + player.position.timeToLerp);
         //TODO send only position and id not the player
         // var d = {
         //     id = thisPlayerID,
