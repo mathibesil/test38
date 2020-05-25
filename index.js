@@ -1,8 +1,24 @@
-var io = require('socket.io')(process.env.PORT || 52300);
+const http = require('http');
+const port=52300;
+
+const server = http.createServer((req, res) => {
+    res.statusCode = 200;
+    res.setHeader('Content-Type', 'text/plain');
+    res.end('Welcome to Namia Online server.');
+});
+
+
+var io = require('socket.io').listen(server);
+
+
+server.listen(port, () => {
+    console.log('Server has started at port: ' + port);
+});
 console.clear();
-console.log('Server has started');
 
 
+
+//#region Socketio
 //Custom Classes
 var Player = require('./Classes/Player.js');
 
@@ -41,3 +57,4 @@ io.on('connection', function(socket){
         console.log('Players online: ' + Object.keys(players).length);
     });
 });
+//#endregion
