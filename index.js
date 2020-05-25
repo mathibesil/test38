@@ -1,5 +1,5 @@
 const http = require('http');
-const port=process.env.PORT || 52300;
+const port= process.env.PORT || 3000;
 
 const server = http.createServer((req, res) => {
     res.statusCode = 200;
@@ -27,9 +27,6 @@ var sockets = [];
 
 
 io.on('connection', function(socket){
-    console.log('Connection Made!' + socket);
-    
-    
     //Create player
     var player = new Player();
     var thisPlayerID = player.id;
@@ -44,7 +41,7 @@ io.on('connection', function(socket){
     socket.broadcast.emit('spawn', player); //Send everybody but me
 
 
-    console.log('Players online: ' + Object.keys(players).length);
+    console.log('New Player!. Players online: ' + Object.keys(players).length);
 
     for(var playerID in players){
         if(playerID != thisPlayerID) socket.emit('spawn', players[playerID]);
