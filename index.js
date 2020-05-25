@@ -11,7 +11,7 @@ const server = http.createServer((req, res) => {
 var io = require('socket.io').listen(server);
 
 
-server.listen(port, () => {
+server.listen(process.env.PORT || port, () => {
     console.log('Server has started at port: ' + port);
 });
 console.clear();
