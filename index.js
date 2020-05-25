@@ -60,6 +60,9 @@ io.on('connection', function(socket){
         // }
     });
 
+    socket.on('ping', function(){
+        socket.emit('pong');
+    });
     socket.on('disconnect', function(){
         delete players[thisPlayerID];
         delete socket[thisPlayerID];
