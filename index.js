@@ -1,5 +1,6 @@
 const http = require('http');
 const port= process.env.PORT || 3000;
+var Player = require('./Classes/Player.js');
 
 const server = http.createServer((req, res) => {
     res.statusCode = 200;
@@ -13,15 +14,13 @@ var io = require('socket.io').listen(server);
 
 server.listen(port, () => {
     console.log('Server has started at port: ' + port);
+    console.log('Player disconnected!. Players online: ' + Object.keys(players).length);
 });
 console.clear();
 
 
 
 //#region Socketio
-//Custom Classes
-var Player = require('./Classes/Player.js');
-
 var players = [];
 var sockets = [];
 
@@ -47,11 +46,24 @@ io.on('connection', function(socket){
         if(playerID != thisPlayerID) socket.emit('spawn', players[playerID]);
     }
 
-    socket.on('disconnect', function(socket){
-        console.log('Disconnected!');
+    socket.on('updatePosition', function(data){
+        player.position.x = data.position.x;
+        player.position.y = data.position.y;
+
+        socket.broadcast.emit('updatePosition', player); 
+        console.log('Move: ' + player.position.x);
+        //TODO send only position and id not the player
+        // var d = {
+        //     id = thisPlayerID,
+        //     position = player.position
+        // }
+    });
+
+    socket.on('disconnect', function(){
         delete players[thisPlayerID];
         delete socket[thisPlayerID];
-        console.log('Players online: ' + Object.keys(players).length);
+        socket.broadcast.emit('disconnected', {id: thisPlayerID});
+        console.log('Player disconnected!. Players online: ' + Object.keys(players).length);
     });
 });
 //#endregion
