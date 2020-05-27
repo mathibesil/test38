@@ -49,6 +49,8 @@ io.on('connection', function(socket){
     socket.on('updatePosition', function(data){
         player.position.x = data.position.x;
         player.position.y = data.position.y;
+        player.position.horizontal = data.position.horizontal;
+        player.position.vertical = data.position.vertical;
         player.position.timeToLerp = data.position.timeToLerp;
 
         socket.broadcast.emit('updatePosition', player); 

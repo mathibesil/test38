@@ -3,6 +3,8 @@ module.exports = class Vector2{
         this.x = X;
         this.y = Y;
         this.timeToLerp;
+        this.horizontal;
+        this.vertical;
     }
 
     Magnitude(){
