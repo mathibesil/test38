@@ -5,6 +5,7 @@ module.exports = class Vector2{
         this.timeToLerp;
         this.horizontal;
         this.vertical;
+        this.speed;
     }
 
     Magnitude(){

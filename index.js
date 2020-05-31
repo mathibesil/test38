@@ -1,6 +1,7 @@
 const http = require('http');
 const port= process.env.PORT || 3000;
 var Player = require('./Classes/Player.js');
+var Attack = require('./Classes/Attack.js');
 
 const server = http.createServer((req, res) => {
     res.statusCode = 200;
@@ -52,14 +53,33 @@ io.on('connection', function(socket){
         player.position.horizontal = data.position.horizontal;
         player.position.vertical = data.position.vertical;
         player.position.timeToLerp = data.position.timeToLerp;
+        player.position.speed = data.position.speed;
 
         socket.broadcast.emit('updatePosition', player); 
-        console.log('Move: ' + player.position.timeToLerp);
+        console.log('Move: (' + player.position.horizontal + ',' + player.position.vertical + ') Speed: ' + player.position.speed);
         //TODO send only position and id not the player
         // var d = {
         //     id = thisPlayerID,
         //     position = player.position
         // }
+    });
+
+    socket.on('attack', function(data){
+        var anAttack = new Attack();
+        anAttack.attacker = data.attacker_id;
+        anAttack.target = data.target;
+        anAttack.attackPosition.x = data.attackPoint.x;
+        anAttack.attackPosition.y = data.attackPoint.y;
+        anAttack.attackTargetActualPosition.x = players[anAttack.target].x;
+        anAttack.attackTargetActualPosition.y = players[anAttack.target].y;
+
+        sockets[anAttack.target].emit('attack', anAttack)
+        console.log('New atack from ' + anAttack.attacker + ' To ' + anAttack.target + ' From  (' + anAttack.attackPosition.x + ',' + anAttack.attackPosition.y + ')');
+    });
+
+    socket.on('damage', function(data){
+        console.log('Damage done to ' + data.target);
+        socket.broadcast.emit('damage', {target: data.target});
     });
 
     socket.on('ping', function(){
