@@ -56,7 +56,7 @@ io.on('connection', function(socket){
         player.position.speed = data.position.speed;
 
         socket.broadcast.emit('updatePosition', player); 
-        console.log('Move: (' + player.position.horizontal + ',' + player.position.vertical + ') Speed: ' + player.position.speed);
+        //console.log('Move: (' + player.position.horizontal + ',' + player.position.vertical + ') Speed: ' + player.position.speed);
         //TODO send only position and id not the player
         // var d = {
         //     id = thisPlayerID,
@@ -74,6 +74,19 @@ io.on('connection', function(socket){
         anAttack.attackTargetActualPosition.y = players[anAttack.target].y;
 
         sockets[anAttack.target].emit('attack', anAttack)
+        console.log('New atack from ' + anAttack.attacker + ' To ' + anAttack.target + ' From  (' + anAttack.attackPosition.x + ',' + anAttack.attackPosition.y + ')');
+    });
+
+    socket.on('attack_range', function(data){
+        var anAttack = new Attack();
+        anAttack.attacker = data.attacker_id;
+        anAttack.target = data.target;
+        anAttack.attackPosition.x = data.attackPoint.x;
+        anAttack.attackPosition.y = data.attackPoint.y;
+        anAttack.attackTargetActualPosition.x = 0;
+        anAttack.attackTargetActualPosition.y = 0;
+
+        sockets[anAttack.attacker].broadcast.emit('attack_range', anAttack)
         console.log('New atack from ' + anAttack.attacker + ' To ' + anAttack.target + ' From  (' + anAttack.attackPosition.x + ',' + anAttack.attackPosition.y + ')');
     });
 
