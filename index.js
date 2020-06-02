@@ -80,7 +80,7 @@ io.on('connection', function(socket){
     socket.on('attack_range', function(data){
         var anAttack = new Attack();
         anAttack.attacker = data.attacker_id;
-        anAttack.target = data.target;
+        anAttack.target = data.proyectile;
         anAttack.attackPosition.x = data.attackPoint.x;
         anAttack.attackPosition.y = data.attackPoint.y;
         anAttack.attackTargetActualPosition.x = 0;
@@ -93,6 +93,11 @@ io.on('connection', function(socket){
     socket.on('damage', function(data){
         console.log('Damage done to ' + data.target);
         socket.broadcast.emit('damage', {target: data.target});
+    });
+
+    socket.on('damage_proyectile', function(data){
+        console.log('Damage done to ' + data.target);
+        socket.broadcast.emit('damage_proyectile', {target: data.target, attacker: data.attacker_id, proyectile: data.proyectile});
     });
 
     socket.on('ping', function(){
