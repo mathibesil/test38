@@ -87,6 +87,7 @@ io.on('connection', function(socket){
         anAttack.attackTargetActualPosition.y = 0;
 
         sockets[anAttack.attacker].broadcast.emit('attack_range', anAttack)
+        socket.emit('attack_range', anAttack)
         console.log('New atack from ' + anAttack.attacker + ' To ' + anAttack.target + ' From  (' + anAttack.attackPosition.x + ',' + anAttack.attackPosition.y + ')');
     });
 
