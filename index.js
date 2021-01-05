@@ -1,7 +1,11 @@
 const http = require('http');
-const port= process.env.PORT || 3000;
+const port= process.env.PORT || 3001;
 var Player = require('./Classes/Player.js');
 var Attack = require('./Classes/Attack.js');
+var Grid = require('./Classes/Grid.js');
+var Vector3 = require('./Classes/Vector3.js');
+var Vector3Int = require('./Classes/Vector3Int.js');
+const { isUndefined } = require('util');
 
 const server = http.createServer((req, res) => {
     res.statusCode = 200;
@@ -15,7 +19,7 @@ var io = require('socket.io').listen(server);
 
 server.listen(port, () => {
     console.log('Server has started at port: ' + port);
-    console.log('Player disconnected!. Players online: ' + Object.keys(players).length);
+    console.log('Players online: ' + Object.keys(players).length);
 });
 console.clear();
 
@@ -24,7 +28,10 @@ console.clear();
 //#region Socketio
 var players = [];
 var sockets = [];
+var clientServerSocket = [];
 
+
+ 
 
 io.on('connection', function(socket){
     //Create player
@@ -37,68 +44,58 @@ io.on('connection', function(socket){
 
     //Tell the client that this is our id for the server
     socket.emit('register', {id: thisPlayerID});
-    socket.emit('spawn', player); //Tell myself i have spawned
-    socket.broadcast.emit('spawn', player); //Send everybody but me
+    if(Object.keys(clientServerSocket).length > 0)
+        if(typeof clientServerSocket[thisPlayerID] === 'undefined'){
+            clientServerSocket[Object.keys(clientServerSocket)[0]].emit('spawnPlayerOnServer', player);
+            console.log('New Player!. Spawned on server client');
+        }
+   
+     
+    // socket.emit('spawn', player); //Tell myself i have spawned
+    // socket.broadcast.emit('spawn', player); //Send everybody but me
 
 
     console.log('New Player!. Players online: ' + Object.keys(players).length);
 
-    for(var playerID in players){
-        if(playerID != thisPlayerID) socket.emit('spawn', players[playerID]);
-    }
+    // for(var playerID in players){
+    //     if(playerID != thisPlayerID) socket.emit('spawn', players[playerID]);
+    // }
 
-    socket.on('updatePosition', function(data){
-        player.position.x = data.position.x;
-        player.position.y = data.position.y;
-        player.position.horizontal = data.position.horizontal;
-        player.position.vertical = data.position.vertical;
-        player.position.timeToLerp = data.position.timeToLerp;
-        player.position.speed = data.position.speed;
-
-        socket.broadcast.emit('updatePosition', player); 
-        //console.log('Move: (' + player.position.horizontal + ',' + player.position.vertical + ') Speed: ' + player.position.speed);
-        //TODO send only position and id not the player
-        // var d = {
-        //     id = thisPlayerID,
-        //     position = player.position
-        // }
+    socket.on('registerClientServer', function(){
+        clientServerSocket = [];
+        clientServerSocket[thisPlayerID] = socket;
+        console.log('Client server registered! ID: ' + thisPlayerID);
     });
 
-    socket.on('attack', function(data){
-        var anAttack = new Attack();
-        anAttack.attacker = data.attacker_id;
-        anAttack.target = data.target;
-        anAttack.attackPosition.x = data.attackPoint.x;
-        anAttack.attackPosition.y = data.attackPoint.y;
-        anAttack.attackTargetActualPosition.x = players[anAttack.target].x;
-        anAttack.attackTargetActualPosition.y = players[anAttack.target].y;
-
-        sockets[anAttack.target].emit('attack', anAttack)
-        console.log('New atack from ' + anAttack.attacker + ' To ' + anAttack.target + ' From  (' + anAttack.attackPosition.x + ',' + anAttack.attackPosition.y + ')');
+    socket.on('playerSpawnedOnServer', function(data){
+        socket.broadcast.emit('spawn', players[data.id]); //Send everybody but me
+        console.log('playerSpawnedOnServer! ID: ' + data.id);
     });
 
-    socket.on('attack_range', function(data){
-        var anAttack = new Attack();
-        anAttack.attacker = data.attacker_id;
-        anAttack.target = data.proyectile;
-        anAttack.attackPosition.x = data.attackPoint.x;
-        anAttack.attackPosition.y = data.attackPoint.y;
-        anAttack.attackTargetActualPosition.x = 0;
-        anAttack.attackTargetActualPosition.y = 0;
+    socket.on('moveCharacter', function(data){
+        player.position.horizontal = data.horizontal;
+        player.position.vertical = data.vertical;
+        clientServerSocket[Object.keys(clientServerSocket)[0]].emit('moveCharacterOnServer', player);
+        console.log('moveCharacter (' + player.position.horizontal + ')(' + player.position.vertical + ')');
+        // player.position.horizontal = data.position.horizontal;
+        // player.position.vertical = data.position.vertical;
+        // player.position.timeToLerp = data.position.timeToLerp;
+        // player.position.speed = data.position.speed;
 
-        sockets[anAttack.attacker].broadcast.emit('attack_range', anAttack)
-        socket.emit('attack_range', anAttack)
-        console.log('New atack from ' + anAttack.attacker + ' To ' + anAttack.target + ' From  (' + anAttack.attackPosition.x + ',' + anAttack.attackPosition.y + ')');
+
     });
-
-    socket.on('damage', function(data){
-        console.log('Damage done to ' + data.target);
-        socket.broadcast.emit('damage', {target: data.target});
-    });
-
-    socket.on('damage_proyectile', function(data){
-        console.log('Damage done to ' + data.target);
-        socket.broadcast.emit('damage_proyectile', {target: data.target, attacker: data.attacker_id, proyectile: data.proyectile});
+    socket.on('moveCharacterForEveryone', function(data){
+    var datas = {
+        'id': data.id,
+        'position': {
+            'x': String(data.position.x),
+            'y': String(data.position.y)
+        }
+    };
+        players[data.id].position.x = data.position.x;
+        players[data.id].position.y = data.position.y;
+        socket.broadcast.emit('moveCharacterForEveryone', datas); 
+        console.log('moveCharacterForEveryone (' + datas.position.x + ')(' + datas.position.y + ')');
     });
 
     socket.on('ping', function(){
